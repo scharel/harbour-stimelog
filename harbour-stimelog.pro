@@ -16,8 +16,11 @@ CONFIG += sailfishapp
 
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
+HEADERS += \
+    src/timelog.h
+
 SOURCES += src/harbour-stimelog.cpp \
-    src/stimelog.cpp
+    src/timelog.cpp
 
 DISTFILES += qml/harbour-stimelog.qml \
     qml/cover/CoverPage.qml \
@@ -41,6 +44,3 @@ CONFIG += sailfishapp_i18n
 # following TRANSLATIONS line. And also do not forget to
 # modify the localized app name in the the .desktop file.
 TRANSLATIONS += translations/harbour-timelog-de.ts
-
-HEADERS += \
-    src/stimelog.h
