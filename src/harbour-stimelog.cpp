@@ -8,11 +8,11 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication* app = SailfishApp::application(argc, argv);
-    app->setApplicationDisplayName("Time Log");
-    app->setApplicationName("harbour-timelog");
+    app->setApplicationDisplayName("STimeLog");
+    app->setApplicationName("harbour-stimelog");
     app->setApplicationVersion(APP_VERSION);
     app->setOrganizationDomain("https://github.com/scharel");
-    app->setOrganizationName("harbour-timelog");
+    app->setOrganizationName("harbour-stimelog");
 
     qDebug() << app->applicationDisplayName() << app->applicationVersion();
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     view->rootContext()->setContextProperty("debug", QVariant(false));
 #endif
     view->rootContext()->setContextProperty("timeLog", &timeLog);
-    view->setSource(SailfishApp::pathTo("qml/harbour-timelog.qml"));
+    view->setSource(SailfishApp::pathTo("qml/harbour-stimelog.qml"));
     view->show();
 
     return app->exec();

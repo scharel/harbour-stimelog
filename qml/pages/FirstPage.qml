@@ -34,7 +34,7 @@ Page {
             }
         }
 
-        model: 20
+        model: timeLog
         delegate: Label {
             x: Theme.horizontalPageMargin
             width: parent.width - 2*x
@@ -66,7 +66,11 @@ Page {
 
                 EnterKey.enabled: text.length > 0
                 EnterKey.iconSource: "image://theme/icon-m-enter-accept"
-                EnterKey.onClicked: console.log(text)
+                EnterKey.onClicked: {
+                    console.log(text)
+                    timeLog.addData(text)
+                    text = ""
+                }
             }
         }
     }

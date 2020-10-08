@@ -44,7 +44,7 @@ public:
     void setTasksFile(const QString &fileName);
 
 public slots:
-    bool refresh();
+    bool reload();
 
 signals:
     void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles = QVector<int> ());
@@ -54,8 +54,8 @@ signals:
 private:
     QFile m_timelogFile;
     QFile m_tasksFile;
-    QTimer m_refreshTimer;
-    QString m_timelog;
+    QTimer m_reloadTimer;
+    QStringList m_timelog;
 };
 
 #endif // TIMELOG_H
