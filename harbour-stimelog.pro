@@ -24,8 +24,7 @@ SOURCES += src/harbour-stimelog.cpp \
 
 DISTFILES += qml/harbour-stimelog.qml \
     qml/cover/CoverPage.qml \
-    qml/pages/FirstPage.qml \
-    qml/pages/SecondPage.qml \
+    qml/pages/TimeLogPage.qml \
     rpm/harbour-stimelog.changes.in \
     rpm/harbour-stimelog.changes.run.in \
     rpm/harbour-stimelog.spec \

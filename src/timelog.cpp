@@ -3,18 +3,21 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
-#include <QDateTime>
 
 TimeLog::TimeLog(QObject *parent) : QAbstractListModel(parent)
 {
+    QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    if (appDir.mkpath(".")) {
+        qDebug() << "Directory created:" << appDir.path();
+    }
+
     m_reloadTimer.setInterval(1000);
     connect(&m_reloadTimer, SIGNAL(timeout()), this, SLOT(reload()));
+
     connect(this, SIGNAL(timelogFileChanged(QString)), this, SLOT(reload()));
     connect(this, SIGNAL(timelogFileChanged(QString)), &m_reloadTimer, SLOT(start()));
-    QDir appDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-    appDir.mkdir(".");
-    setTimelogFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + DefaultTimelogFilename);
     setTasksFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + DefaultTasksFilename);
+    setTimelogFile(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + DefaultTimelogFilename);
 }
 
 TimeLog::~TimeLog() {
@@ -47,19 +50,83 @@ int TimeLog::rowCount(const QModelIndex &parent) const {
 }
 
 QVariant TimeLog::data(const QModelIndex &index, int role) const {
-    return QVariant();
+    QVariant data;
+    if (index.isValid() && index.row() < m_timelog.size()) {
+        QString line = m_timelog.at(index.row());
+        int prevIndex = index.row() - 1;
+        QDateTime prevTime;
+        switch (role) {
+        case StartTimeRole:
+            while (prevIndex >= 0) {
+                prevTime = getTime(m_timelog.at(prevIndex));
+                if (prevTime.isValid()) {
+                    if (prevTime.daysTo(getTime(line)) != 0) {
+                        prevTime = QDateTime();
+                    }
+                    prevIndex = 0;
+                }
+                prevIndex--;
+            }
+            data = prevTime;
+            break;
+        case EndTimeRole:
+            data = getTime(line);
+            break;
+        case DurationRole:
+            while (prevIndex >= 0) {
+                prevTime = getTime(m_timelog.at(prevIndex));
+                if (prevTime.isValid()) {
+                    if (prevTime.daysTo(getTime(line)) != 0) {
+                        prevTime = QDateTime();
+                    }
+                    prevIndex = 0;
+                }
+                prevIndex--;
+            }
+            data = prevTime.secsTo(getTime(line)) / 60;
+            break;
+        case ProjectRole:
+            data = getProject(line);
+            break;
+        case TaskRole:
+            data = getTask(line);
+            break;
+        case SlackingRole:
+            data = isSlacking(line);
+            break;
+        case CommentRole:
+            if (isComment(line)) {
+                data = line;
+            }
+            break;
+        }
+    }
+    return data;
 }
 
 bool TimeLog::setData(const QModelIndex &index, const QVariant &value, int role) {
     return false;
 }
 
+bool TimeLog::removeRows(int row, int count, const QModelIndex &parent) {
+    if (row >= 0 && row + count <= m_timelog.size()) {
+        for (int i = row; i < row + count; ++i) {
+            m_timelog.removeAt(row);
+        }
+        return true;
+    }
+    return false;
+}
+
 bool TimeLog::addData(const QString &input) {
-    if (m_timelogFile.open(QIODevice::WriteOnly|QIODevice::Append|QIODevice::Text)) {
-        QString line = QString(QDateTime::currentDateTime().toString(DateTimeFormat) + ": " + input);
+    if (m_timelogFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+        QString line = input;
+        if (!input.startsWith('#')) {
+            line.prepend(QString(QDateTime::currentDateTime().toString(DefaultDateTimeFormat) + ": "));
+        }
         beginInsertRows(QModelIndex(), m_timelog.size(), m_timelog.size());
         m_timelog.append(line);
-        m_timelogFile.write(line.toUtf8());
+        m_timelogFile.write(line.append('\n').toUtf8());
         endInsertRows();
         m_timelogFile.close();
         return true;
@@ -101,6 +168,67 @@ void TimeLog::setTasksFile(const QString &fileName) {
     }
 }
 
+const QDateTime TimeLog::lastTime() const {
+    QDateTime time;
+    for (int i = m_timelog.size()-1; i >= 0 && !time.isValid(); --i) {
+        time = getTime(m_timelog.at(i));
+    }
+    return time;
+}
+
+const QDateTime TimeLog::getTime(const QString &line) {
+    QDateTime time;
+    if (line.contains(": ")) {
+        time = QDateTime::fromString(line.section(':', 0, DefaultDateTimeFormat.count(':')), DefaultDateTimeFormat);
+    }
+    return time;
+}
+
+const QString TimeLog::getProjectAndTask(const QString &line) {
+    QString projectAndTask;
+    if (!line.isEmpty() && !isComment(line)) {
+        projectAndTask = line.section(':', DefaultDateTimeFormat.count(':') + 1);
+        if (isSlacking(line)) {
+            projectAndTask = projectAndTask.section(" **", 0);
+        }
+    }
+    return projectAndTask;
+}
+
+const QString TimeLog::getProject(const QString &line) {
+    QString project;
+    if (!line.isEmpty() && !isComment(line)) {
+        project = getProjectAndTask(line);
+        if (project.contains(": ")) {
+            project = project.section(": ", 0, 0);
+        }
+        else {
+            project.clear();
+        }
+    }
+    return project;
+}
+
+const QString TimeLog::getTask(const QString &line) {
+    QString task;
+    if (!line.isEmpty() && !isComment(line)) {
+        task = getProjectAndTask(line);
+        if (task.contains(": ")) {
+            task = task.section(": ", 1);
+        }
+    }
+    return task;
+}
+
+bool TimeLog::isSlacking(const QString &line) {
+    return !isComment(line) && line.endsWith(" **");
+}
+
+bool TimeLog::isComment(const QString &line) {
+    //return line.startsWith('#');
+    return !line.isEmpty() && !getTime(line).isValid();
+}
+
 bool TimeLog::reload() {
     if (m_timelogFile.open(QIODevice::ReadOnly|QIODevice::Text)) {
         QStringList tmpTimeLog = QString(m_timelogFile.readAll()).split('\n', QString::SkipEmptyParts);
@@ -127,7 +255,7 @@ bool TimeLog::reload() {
                 endRemoveRows();
             }
         }
-        qDebug() << m_timelog;
+        //qDebug() << m_timelog;
         return true;
     }
     qDebug() << "Could not open" << m_timelogFile.fileName();

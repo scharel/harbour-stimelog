@@ -9,13 +9,13 @@
     </message>
 </context>
 <context>
-    <name>FirstPage</name>
+    <name>TimeLogPage</name>
     <message>
-        <source>Add log</source>
+        <source>Time Log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Add time log</source>
+        <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -27,22 +27,35 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Time Log</source>
+        <source>Add time log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>About</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>SecondPage</name>
-    <message>
-        <source>Nested Page</source>
+        <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Item</source>
+        <source>Edit tasks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Report</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add task</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Deleting</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
