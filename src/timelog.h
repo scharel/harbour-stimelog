@@ -23,8 +23,7 @@ public:
         DurationRole = Qt::UserRole + 2,
         ProjectRole = Qt::UserRole + 3,
         TaskRole = Qt::UserRole + 4,
-        SlackingRole = Qt::UserRole + 5,
-        CommentRole = Qt::UserRole + 6
+        SlackingRole = Qt::UserRole + 5
     };
     Q_ENUM(LogRole)
     QHash<int, QByteArray> roleNames() const;
@@ -38,11 +37,11 @@ public:
     Q_INVOKABLE bool addData(const QString &input);
 
     Q_PROPERTY(QString timelogFile READ timelogFile WRITE setTimelogFile NOTIFY timelogFileChanged)
-    const QString timelogFile() const { return m_timelogFile.fileName(); }
+    const QString timelogFile() const { return m_timelogFile; }
     void setTimelogFile(const QString &fileName);
 
     Q_PROPERTY(QString tasksFile READ tasksFile WRITE setTasksFile NOTIFY tasksFileChanged)
-    const QString tasksFile() const { return m_tasksFile.fileName(); }
+    const QString tasksFile() const { return m_tasksFile; }
     void setTasksFile(const QString &fileName);
 
     Q_PROPERTY(QDateTime lastTime READ lastTime NOTIFY lastTimeChanged)
@@ -53,7 +52,7 @@ public:
     Q_INVOKABLE const static QString getProject(const QString &line);
     Q_INVOKABLE const static QString getTask(const QString &line);
     Q_INVOKABLE static bool isSlacking(const QString &line);
-    Q_INVOKABLE static bool isComment(const QString &line);
+    Q_INVOKABLE static bool isValid(const QString &line);
 
 public slots:
     Q_INVOKABLE bool reload();
@@ -65,8 +64,9 @@ signals:
     void lastTimeChanged(const QDateTime &time);
 
 private:
-    QFile m_timelogFile;
-    QFile m_tasksFile;
+    QString m_timelogFile;
+    QDateTime m_timelogFileModifiedTime;
+    QString m_tasksFile;
     QTimer m_reloadTimer;
     QStringList m_timelog;
 };
